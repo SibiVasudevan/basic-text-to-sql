@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Text-to-SQL</title>
+</head>
+<body>
+    <h1>Text-to-SQL Query Generator</h1>
+    <textarea id="query" rows="4" cols="50" placeholder="Enter your query..."></textarea><br>
+    <button onclick="submitQuery()">Submit</button>
+    <pre id="sql-output"></pre>
+    <pre id="results-output"></pre>
+
+    <script>
+    function submitQuery() {
+        const query = document.getElementById('query').value;
+        fetch('/api/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('sql-output').textContent = `SQL Query:\n${data.sql_query}`;
+            const result = data.execution_result;
+            if (result && result.results) {
+                const headers = result.columns.join(' | ');
+                const rows = result.results.map(row => row.join(' | ')).join('\n');
+                document.getElementById('results-output').textContent = `Results:\n${headers}\n${rows}`;
+            } else if (result && result.error) {
+                document.getElementById('results-output').textContent = `Error: ${result.error}`;
+            }
+        });
+    }
+    </script>
+</body>
+</html>
